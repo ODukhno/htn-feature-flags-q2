@@ -12,12 +12,12 @@ namespace ECSConfigProxy.ECS
     {
         private const int PollingPeriodInSec = 30;
 
-        private readonly ConcurrentDictionary<string, string> _ecsConfigurationValues;
+        private readonly ConcurrentDictionary<string, ECSConfig> _ecsConfigurationValues;
         private readonly ECSAuthInfo _authInfo;
 
         public ECSConfigCache(IOptions<ECSAuthInfo> authInfo)
         {
-            _ecsConfigurationValues = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _ecsConfigurationValues = new ConcurrentDictionary<string, ECSConfig>(StringComparer.OrdinalIgnoreCase);
 
             _authInfo = authInfo.Value;
 
@@ -26,21 +26,11 @@ namespace ECSConfigProxy.ECS
             Task.Run(UpdateConfiguration);
         }
 
-        public string GetValue(string key)
+        public IEnumerable<KeyValuePair<string, ECSConfig>> GetAll()
         {
-            if (_ecsConfigurationValues.TryGetValue(key, value: out var value))
+            foreach (KeyValuePair<string, ECSConfig> pair in _ecsConfigurationValues)
             {
-                return value;
-            }
-
-            return string.Empty;
-        }
-
-        public IEnumerable<KeyValuePair<string, object>> GetAll()
-        {
-            foreach (KeyValuePair<string, string> pair in _ecsConfigurationValues)
-            {
-                yield return new KeyValuePair<string, object>(pair.Key, pair.Value);
+                yield return new KeyValuePair<string, ECSConfig>(pair.Key, pair.Value);
             }
         } 
 
@@ -96,7 +86,7 @@ namespace ECSConfigProxy.ECS
             }
         }
 
-        private void PopulateDictionary(string ecsConfigurationsJson)
+        public void PopulateDictionary(string ecsConfigurationsJson)
         {
             JsonDocument doc = JsonDocument.Parse(ecsConfigurationsJson);
             JsonElement configurations = doc.RootElement.GetProperty("configurations");
@@ -105,14 +95,33 @@ namespace ECSConfigProxy.ECS
             while (configurationsEnumerator.MoveNext())
             {
                 JsonElement current = configurationsEnumerator.Current;
+
+                string configurationType = current.GetProperty("configurationType").GetString()!;
+                bool isDefault = configurationType.Equals("Default", StringComparison.OrdinalIgnoreCase);
+
                 JsonElement configs = current.GetProperty("configs");
 
                 JsonElement.ArrayEnumerator configsEnumerator = configs.EnumerateArray();
 
                 while (configsEnumerator.MoveNext())
                 {
-                    JsonElement config = configsEnumerator.Current.GetProperty("config");
+                    JsonElement currentConfig = configsEnumerator.Current;
 
+                    string stageName = currentConfig.GetProperty("name").GetString() ?? "default";
+                    double allocationPercentage = currentConfig.GetProperty("allocationPercentage").GetDouble();
+                    int priority = currentConfig.GetProperty("priority").GetInt32();
+
+                    List<Filter> filtersLst = new List<Filter>();
+                    JsonElement filters = currentConfig.GetProperty("filters");
+                    JsonElement.ArrayEnumerator filtersEnumerator = filters.EnumerateArray();
+
+                    while (filtersEnumerator.MoveNext())
+                    {
+                        JsonElement filterElement = filtersEnumerator.Current;
+                        filtersLst.Add(filterElement.Deserialize<Filter>()!);
+                    }
+
+                    JsonElement config = currentConfig.GetProperty("config");
                     JsonElement.ObjectEnumerator configEnumerator = config.EnumerateObject();
 
                     while (configEnumerator.MoveNext())
@@ -120,12 +129,35 @@ namespace ECSConfigProxy.ECS
                         JsonProperty element = configEnumerator.Current;
 
                         string key = element.Name;
-                        string newValue = element.Value.GetString()!;
+                        object newValue = element.Value;
+
+                        ConfigValue configValue = new ConfigValue
+                        {
+                            VariantName = stageName,
+                            IsDefault = isDefault,
+                            AllocationPercentage = allocationPercentage,
+                            Priority = priority,
+                            Filters = filtersLst,
+                            Value = newValue,
+                        };
+
+                        Func<string, ECSConfig> addFunc = (_key) =>
+                        {
+                            var value = new ConcurrentDictionary<string, ConfigValue>();
+                            value.AddOrUpdate(configValue.VariantName, configValue, (_, _) => configValue);
+                            return new ECSConfig { ConfigValues = value };
+                        };  
+
+                        Func<string, ECSConfig, ECSConfig> updateFunc = (_, _config) =>
+                        {
+                            _config.ConfigValues.AddOrUpdate(configValue.VariantName, configValue, (_, _) => configValue);
+                            return _config;
+                        };
 
                         _ecsConfigurationValues.AddOrUpdate(
                             key,
-                            newValue,
-                            (_, __) => newValue);
+                            addFunc,
+                            updateFunc);
                     }
                 }
             }

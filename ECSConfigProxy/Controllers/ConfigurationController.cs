@@ -20,7 +20,7 @@ namespace ECSConfigProxy.Controllers
         {
             var allCachedConfigs = _configurationCache.GetAll();
 
-            var obj = FlagdFlagFactory.CreateFlagsSet(allCachedConfigs);
+            var obj = ECSToFlagdAdaptor.CreateFlagsSetFromECS(allCachedConfigs);
 
             return Json(obj);
         }
