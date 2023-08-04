@@ -109,7 +109,7 @@ namespace ECSConfigProxy.ECS
 
                     string stageName = currentConfig.GetProperty("name").GetString() ?? "default";
                     double allocationPercentage = currentConfig.GetProperty("allocationPercentage").GetDouble();
-                    int priority = currentConfig.GetProperty("priority").GetInt32();
+                    int priority = isDefault ? int.MaxValue : currentConfig.GetProperty("priority").GetInt32();
 
                     List<Filter> filtersLst = new List<Filter>();
                     JsonElement filters = currentConfig.GetProperty("filters");
