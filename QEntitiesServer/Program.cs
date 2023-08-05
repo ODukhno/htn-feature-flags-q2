@@ -7,12 +7,6 @@ using Microsoft.Extensions.Caching.Memory;
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.ConfigureServices((hostContext, services) =>
 {
-    services
-        .Configure<Features>(hostContext.Configuration.GetSection(nameof(Features)))
-        .AddOptions<Features>()
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
-
     var authConfigurationSection = builder.Configuration.GetSection("AzureAd");    
 
     services

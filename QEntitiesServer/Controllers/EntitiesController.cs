@@ -20,8 +20,8 @@ public class EntitiesController : Controller
     [HttpGet]
     public async Task<ActionResult> GetEntities(string mapName)
     {
-        string monstersPositionVersion = await _featureClient.GetStringValue("CorrectMonsterPosition", "none", null).ConfigureAwait(false);
-        Console.WriteLine($"Read CorrectMonsterPosition as {monstersPositionVersion}");
+        string monstersPositionVersion = await _featureClient.GetStringValue(Features.CorrectMonsterPosition, "none", null).ConfigureAwait(false);
+        Console.WriteLine($"Read {Features.CorrectMonsterPosition} as {monstersPositionVersion}");
 
         string entitiesPath;
 

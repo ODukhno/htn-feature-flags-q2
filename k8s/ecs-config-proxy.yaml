@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecs-config-proxy
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+  selector:
+    app: ecs-config-proxy
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: ecs-config-proxy
+spec:
+  selector:
+    matchLabels:
+      app: ecs-config-proxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ecs-config-proxy
+    spec:
+      imagePullSecrets:
+        - name: acrsecret
+      containers:
+      - name: ecs-config-proxy
+        image: q2ffhackaton.azurecr.io/ecs-config-proxy:latest
+        env:
+        - name: AzureAd__ClientSecret
+          value: ""
+        - name: ASPNETCORE_URLS
+          value: http://+:80
+        ports:
+          - containerPort: 80
+            protocol: TCP

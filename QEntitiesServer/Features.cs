@@ -1,6 +1,6 @@
 namespace QEntitiesServer;
 
-public class Features
+public static class Features
 {
-    public bool CorrectMonsterPosition { get; set; }
+    public const string CorrectMonsterPosition = "CorrectMonsterPosition";
 }

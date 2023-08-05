@@ -3,6 +3,9 @@ using Microsoft.Identity.Web;
 using QEntitiesServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using QResourceServer;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.ConfigureServices((hostContext, services) =>
@@ -24,6 +27,10 @@ builder.Host.ConfigureServices((hostContext, services) =>
 
     services.AddSingleton(memoryCache);
 
+    services
+        .AddHealthChecks()
+        .AddCheck<HealthCheck>("generic");
+
     services.AddControllers();
 });
 
@@ -38,6 +45,9 @@ app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
+    endpoints.MapHealthChecks("/health/startup");
+    endpoints.MapHealthChecks("/health/liveness");
+    endpoints.MapHealthChecks("/health/readiness");
     endpoints.MapControllers();
 });
 

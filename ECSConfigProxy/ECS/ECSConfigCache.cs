@@ -69,7 +69,7 @@ namespace ECSConfigProxy.ECS
 
                 string token = clientSecretCredential.GetToken(tokenRequestContext).Token;
 
-                HttpClient httpClient = new HttpClient();
+                using HttpClient httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
 

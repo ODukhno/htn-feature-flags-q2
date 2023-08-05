@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: flagd
+spec:
+  type: NodePort
+  ports:
+  - port: 8013
+  selector:
+    app: flagd
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: flagd
+spec:
+  selector:
+    matchLabels:
+      app: flagd
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: flagd
+    spec:
+      containers:
+      - name: flagd
+        image: ghcr.io/open-feature/flagd:latest
+        ports:
+          - containerPort: 8013
+            protocol: TCP
+        args: ["start", "--uri", "http://ecs-config-proxy"]
