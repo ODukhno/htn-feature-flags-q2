@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenFeature.Contrib.Providers.Flagd;
+using OpenFeature.Model;
 
 namespace QEntitiesServer.Controllers;
 
@@ -20,7 +21,8 @@ public class EntitiesController : Controller
     [HttpGet]
     public async Task<ActionResult> GetEntities(string mapName)
     {
-        string monstersPositionVersion = await _featureClient.GetStringValue(Features.CorrectMonsterPosition, "none", null).ConfigureAwait(false);
+        var context = EvaluationContext.Builder().Set("UserId", "someone").Build();
+        string monstersPositionVersion = await _featureClient.GetStringValue(Features.CorrectMonsterPosition, "none", context).ConfigureAwait(false);
         Console.WriteLine($"Read {Features.CorrectMonsterPosition} as {monstersPositionVersion}");
 
         string entitiesPath;
