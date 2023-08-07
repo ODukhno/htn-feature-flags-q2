@@ -30,13 +30,13 @@ public class EntitiesController : Controller
         switch (monstersPositionVersion)
         {
             case "v1":
-                entitiesPath = "Entities\\Entities2.info";
+                entitiesPath = Path.Combine("Entities", "Entities2.info");
                 break;
             case "v2":
-                entitiesPath = "Entities\\Entities1.info";
+                entitiesPath = Path.Combine("Entities", "Entities1.info");
                 break;
             default:
-                entitiesPath = "Entities\\Entities_NoMonsters.info";
+                entitiesPath = Path.Combine("Entities", "Entities_NoMonsters.info");
                 break;
         }
 

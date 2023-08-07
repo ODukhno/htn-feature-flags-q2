@@ -78,7 +78,7 @@ namespace ECSConfigProxy.ECS
                 PopulateDictionary(result);
 
                 // TODO emit metric via open telemetry
-                Console.WriteLine("Config updated.");
+                Console.WriteLine(DateTime.Now.ToString() + " Config updated.");
             }
             catch (Exception ex)
             {
