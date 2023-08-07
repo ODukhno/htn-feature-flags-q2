@@ -64,6 +64,11 @@ namespace QClient
 
             var builder = new UriBuilder(Settings.EntitiesUri);
             var query = HttpUtility.ParseQueryString(builder.Query);
+
+            // for demo purposes, we are using the map name as the current client user id
+            mapName = Environment.UserName;
+            Console.WriteLine($"Current user: {mapName}");
+
             query["mapName"] = mapName.Substring(mapName.IndexOf("/") + 1);
             builder.Query = query.ToString();
             string url = builder.ToString();

@@ -21,7 +21,7 @@ public class EntitiesController : Controller
     [HttpGet]
     public async Task<ActionResult> GetEntities(string mapName)
     {
-        var context = EvaluationContext.Builder().Set("UserId", "someone").Build();
+        var context = EvaluationContext.Builder().Set("UserId", mapName).Build();
         string monstersPositionVersion = await _featureClient.GetStringValue(Features.CorrectMonsterPosition, "none", context).ConfigureAwait(false);
         Console.WriteLine($"Read {Features.CorrectMonsterPosition} as {monstersPositionVersion}");
 
