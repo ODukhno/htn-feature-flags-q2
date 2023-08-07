@@ -21,32 +21,12 @@ namespace QClient
             Settings = config.GetSection(nameof(AccessSettings)).Get<AccessSettings>();
         }
 
-        public static HttpClient CreateHttpClient()
-        {
-            ClientSecretCredential clientSecretCredential = new ClientSecretCredential(
-                Settings.TenantId,
-                Settings.ClientId,
-                Settings.ClientSecret);
-
-            TokenRequestContext tokenRequestContext =
-                new TokenRequestContext(
-                    new string[] {
-                        $"api://{Settings.ClientId}/.default", });
-
-            string token = clientSecretCredential.GetToken(tokenRequestContext).Token;
-
-            HttpClient httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", token);
-
-            return httpClient;
-        }
-
         public static Stream DownloadResources()
         {
             Console.WriteLine("Authenticating and downloading the resources");
 
-            var httpResult = CreateHttpClient().GetAsync(Settings.ResourceUri).GetAwaiter().GetResult();
+            using var httpClient = CreateHttpClient();
+            var httpResult = httpClient.GetAsync(Settings.ResourceUri).GetAwaiter().GetResult();
 
             if (!httpResult.IsSuccessStatusCode)
             {
@@ -73,7 +53,8 @@ namespace QClient
             builder.Query = query.ToString();
             string url = builder.ToString();
 
-            var httpResult = CreateHttpClient().GetAsync(url).GetAwaiter().GetResult();
+            using var httpClient = CreateHttpClient();
+            var httpResult = httpClient.GetAsync(url).GetAwaiter().GetResult();
 
             if (!httpResult.IsSuccessStatusCode)
             {
@@ -84,5 +65,27 @@ namespace QClient
 
             return httpResult.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
+
+        private static HttpClient CreateHttpClient()
+        {
+            ClientSecretCredential clientSecretCredential = new ClientSecretCredential(
+                Settings.TenantId,
+                Settings.ClientId,
+                Settings.ClientSecret);
+
+            TokenRequestContext tokenRequestContext =
+                new TokenRequestContext(
+                    new string[] {
+                        $"api://{Settings.ClientId}/.default", });
+
+            string token = clientSecretCredential.GetToken(tokenRequestContext).Token;
+
+            HttpClient httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            return httpClient;
+        }
+
     }
 }

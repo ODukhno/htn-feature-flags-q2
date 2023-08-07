@@ -21,4 +21,13 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Entities\Entities2.info">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Entities\Entities_NoMonsters.info">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
